@@ -14,13 +14,14 @@ the planner's current limitations are listed in that guide.
 
 | Directory | Purpose |
 | --- | --- |
-| `mars_rover_unity_sim/` | Unity scene, rover model, simulated sensors and ROS TCP Connector |
+| `mars_rover_unity_sim/` | Unity scene, rover model, simulated sensors and the ROS TCP Connector package entry |
 | `mars_rover_ros2_ws/` | ROS TCP Endpoint, mapping, costmap projection, A* planning and RViz configuration |
 
 Both directories are Git submodules. Their recorded commits define the pair
 used by this checkout; an empty directory means the submodule has not been
-initialized. The current submodule URLs in [.gitmodules](.gitmodules) belong to
-the original author. They are separate from this lab-owned wrapper repository.
+initialized. The current submodule URLs in [.gitmodules](.gitmodules) point to
+repositories outside the Space-FALCON-Lab organization, separate from this
+wrapper repository.
 
 ## Before you start
 
@@ -69,8 +70,8 @@ latest branches while reproducing this pair.
 4. Enter Play mode. Use the workspace guide's topic and transform checks to
    confirm that measurements arrive before interpreting the planned path.
 
-The supplied scripts publish `/pointcloud`, `/pose` and `/clock`, and subscribe
-to `/cmd_vel`. Mapping and planning also require the scene's transform tree,
+The supplied scripts publish `/pointcloud`, `/pose`, `/clock` and `/tf`, and
+subscribe to `/cmd_vel`. Mapping and planning also require the scene's transform tree,
 including `map` to `base_link` and the LiDAR frame. Source scripts alone do not
 confirm that every component is attached and configured in a particular scene.
 
