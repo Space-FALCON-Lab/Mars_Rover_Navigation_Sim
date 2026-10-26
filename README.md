@@ -1,82 +1,84 @@
-# Mars_Navigation_Sim
+# Mars Rover Navigation Simulation
 
-A high-level simulation framework for autonomous planetary rover navigation using Unity and ROS2.
+This repository combines a Unity rover scene with a ROS 2 workspace for
+experimental mapping and navigation. Unity supplies simulated measurements and
+receives velocity commands. ROS 2 builds an OctoMap, projects it into a local
+costmap and runs a custom A* planner.
 
-This wrapper repository links two coordinated submodules:
-- **Unity Simulation** (`mars_rover_unity_sim/`): 3D Martian terrain, simulated LiDAR, rover prefab, and ROS–Unity integration via ROS–TCP Connector.
-- **ROS2 Stack** (`mars_rover_ros2_ws/`): LiDAR mapping with OctoMap, 2D slope-aware costmap projection, and a custom A* navigation planner.
+Start here to obtain the paired projects. Continue with the
+[ROS workspace guide](https://github.com/Space-FALCON-Lab/mars_rover_ros2_ws#build-and-run)
+for the build, launch and connection checks. This is a simulation prototype;
+the planner's current limitations are listed in that guide.
 
----
+## What is in the checkout
 
-## 🛠️ Prerequisites
+| Directory | Purpose |
+| --- | --- |
+| `mars_rover_unity_sim/` | Unity scene, rover model, simulated sensors and the ROS TCP Connector package entry |
+| `mars_rover_ros2_ws/` | ROS TCP Endpoint, mapping, costmap projection, A* planning and RViz configuration |
 
-- Unity 2022 or later (preferably Unity 2022.3 LTS)
-- ROS 2 Humble (or compatible version)
-- Colcon and ROS2 development environment
-- Git and Python 3.10+
+Both directories are Git submodules. Their recorded commits define the pair
+used by this checkout; an empty directory means the submodule has not been
+initialized. The current submodule URLs in [.gitmodules](.gitmodules) point to
+repositories outside the Space-FALCON-Lab organization, separate from this
+wrapper repository.
 
----
+## Before you start
 
-## 🚀 Getting Started
+Prepare a ROS 2 Humble environment with Python 3, colcon and rosdep, following
+the [ROS installation guide](https://docs.ros.org/en/humble/Installation.html).
+The commands in the workspace guide use Bash on Ubuntu.
 
-### 1. Clone this wrapper with submodules:
+Install Git LFS before obtaining the Unity assets. The pinned Unity project
+records **Unity 6000.0.43f1** in `ProjectSettings/ProjectVersion.txt`; open it
+with that editor version through Unity Hub. The older recommendation to use
+Unity 2022 does not describe this pinned project.
+
+## Get both projects
+
+In a terminal, choose the parent directory for your checkout, then run:
 
 ```bash
-git clone --recurse-submodules https://github.com/Maxwell44772029/Mars_Navigation_Sim.git
-cd Mars_Navigation_Sim
+git lfs install
+git clone --recurse-submodules https://github.com/Space-FALCON-Lab/Mars_Rover_Navigation_Sim.git
+cd Mars_Rover_Navigation_Sim
+git submodule status
+git -C mars_rover_unity_sim lfs pull
+```
 
-🔧 Unity Setup
-Install Unity using Unity Hub.
+For an existing checkout, initialize its recorded submodules with:
 
-Recommended version: Unity 2022.3 LTS
+```bash
+git submodule update --init --recursive
+```
 
-Open Unity Hub and add the project:
+These commands use the recorded commits. Do not update the submodules to their
+latest branches while reproducing this pair.
 
-Click Add → Navigate to mars_rover_unity_sim/ and open it.
+## Build and connect the simulation
 
-Install the ROS–TCP Connector package:
+1. Build `mars_rover_ros2_ws/` using the
+   [workspace instructions](https://github.com/Space-FALCON-Lab/mars_rover_ros2_ws#build-and-run).
+   That guide starts the ROS TCP Endpoint and launches
+   `mars_rover_sim bringup_sim.launch.py`.
+2. Add `mars_rover_unity_sim/` to Unity Hub and open
+   `Assets/OutdoorsScene.unity`. Let Unity resolve the packages recorded in
+   `Packages/manifest.json`.
+3. In the Unity ROS connection settings, select ROS 2 and the address of the
+   computer running the ROS TCP Endpoint, on port `10000`. If Unity and ROS run
+   on different computers, use the ROS computer's reachable address.
+4. Enter Play mode. Use the workspace guide's topic and transform checks to
+   confirm that measurements arrive before interpreting the planned path.
 
-Go to Window → Package Manager → Add package from Git URL
+The supplied scripts publish `/pointcloud`, `/pose`, `/clock` and `/tf`, and
+subscribe to `/cmd_vel`. Mapping and planning also require the scene's transform tree,
+including `map` to `base_link` and the LiDAR frame. Source scripts alone do not
+confirm that every component is attached and configured in a particular scene.
 
-Paste:
-https://github.com/Unity-Technologies/ROS-TCP-Connector.git
-Build the Unity project and press Play to start the simulation.
+## What to inspect first
 
-
-🤖 ROS2 Setup
-Once the Unity project is loaded and running:
-cd mars_rover_ros2_ws
-colcon build
-source install/setup.bash
-
-Connecting Unity ↔ ROS2
-Terminal 1: Run the ROS TCP Endpoint
-source install/setup.bash
-ros2 run ros_tcp_endpoint default_server_endpoint
-
-Terminal 2: Launch the full simulation stack
-source install/setup.bash
-ros2 launch mars_rover_navigation bringup.launch.py
-
-This starts:
--OctoMap 3D occupancy mapping
--2D costmap projection node
--A* path planner
--RViz for LiDAR, map, and path visualization
-
-Repositories Overview
--> Folder	Description
-- mars_rover_unity_sim	Unity simulation: terrain, LiDAR, rover, and ROS bridge
-- mars_rover_ros2_ws	ROS2 workspace: OctoMap mapping, planning, and control
-
- Features
--Real Martian terrain using heightmaps and PBR textures
--3D LiDAR simulation via raycasting and point cloud generation
--Rolling slope-aware 2D costmap from OctoMap
--A* planner that avoids steep and hazardous terrain
--Real-time integration between Unity and ROS2 using the ROS–TCP Connector
-
- Project Goals
--Simulate autonomous planetary navigation with realistic terrain interaction
--Enable testing of terrain-aware perception and navigation algorithms
--Provide a modular foundation for hybrid Unity + ROS2 simulations
+Look for a point cloud in RViz, then a costmap on `/costmap_2d` and a path on
+`/astar_path`. The current planner chooses its goal from a fixed offset in its
+Python source; RViz's Nav2 goal tool is not its goal input. Costmap thresholds
+and planner behavior are described in the workspace guide so you can decide
+what to change for your experiment.
