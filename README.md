@@ -82,3 +82,8 @@ Look for a point cloud in RViz, then a costmap on `/costmap_2d` and a path on
 Python source; RViz's Nav2 goal tool is not its goal input. Costmap thresholds
 and planner behavior are described in the workspace guide so you can decide
 what to change for your experiment.
+
+## Contributors
+
+- [Giusy Falcone](https://github.com/gfalcon2)
+- [Maxwell Gonzalez](https://github.com/Maxwell44772029)
